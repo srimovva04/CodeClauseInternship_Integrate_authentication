@@ -1,36 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreService {
 
   final CollectionReference tasks=
       FirebaseFirestore.instance.collection('tasks');
 
-  Future<void> addTask(String task){
-    return tasks.add({
-      'task':task,
-      'completed': false,
-      'timestamp': Timestamp.now(),
-    });
+  Future<void> addTask(String task) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('tasks').add({
+        'task': task,
+        'completed': false,
+      });
+    }
   }
 
-  Future<void> taskCheck(String docID, bool isCompleted){
-    return tasks.doc(docID).update({'completed': isCompleted,});
+  Future<void> taskCheck(String docID, bool isCompleted) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('tasks').doc(docID).update({
+        'completed': isCompleted,
+      });
+    }
   }
 
   Stream<QuerySnapshot> getTaskStream(){
-    final taskStream = tasks.orderBy('timestamp').snapshots();
-    return taskStream;
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return FirebaseFirestore.instance.collection('users').doc(user.uid).collection('tasks').snapshots();
+    } else {
+      throw Exception("User not logged in");
+    }
   }
 
-  Future<void> updateTask(String docID, String newTask){
-    return tasks.doc(docID).update({
-      'task': newTask,
-      'timestamp': Timestamp.now(),
-    });
+  Future<void> updateTask(String docID, String newTask) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('tasks').doc(docID).update({
+        'task': newTask,
+      });
+  }
   }
 
-  Future<void> deleteTask(String docID){
-    return tasks.doc(docID).delete();
+  Future<void> deleteTask(String docID) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('tasks').doc(docID).delete();
+    }
   }
 
 }

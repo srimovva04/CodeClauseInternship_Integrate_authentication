@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todoapp/firestore.dart';
-import 'util/dialog_box.dart';
-import 'util/todo_tile.dart';
+import '../util/dialog_box.dart';
+import '../util/todo_tile.dart';
+import 'login.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -58,22 +60,82 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(e.toString()),
+          );
+        },
+      );
+    }
+  }
+
+  String? userEmail = "";
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserInfo();
+  }
+  Future<void> _fetchUserInfo() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(94, 173, 234, 1.0),
-      appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(6, 24, 83, 1.0),
-        title: const Text('To Do App',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
-            color: Colors.white,
-            fontFamily: 'Impact',
-          ),),
-        centerTitle: true,
-        titleSpacing: 10,
-      ),
+        appBar: AppBar(
+          backgroundColor: const Color.fromRGBO(6, 24, 83, 1.0),
+          title: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'To Do App',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.white,
+                    fontFamily: 'Impact',
+                  ),
+                ),
+                if (userEmail != null)
+                  Text(
+                    '| $userEmail |',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromRGBO(163, 181, 181, 1.0),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          titleSpacing: 10,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => signOut(context),
+              color: Colors.white,
+            ),
+          ],
+        ),
       floatingActionButton: FloatingActionButton(
         onPressed: createNewTask,
         backgroundColor: const Color.fromRGBO(6, 24, 83, 1.0),

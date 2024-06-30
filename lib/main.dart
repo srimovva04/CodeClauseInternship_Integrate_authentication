@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:todoapp/home_page.dart';
+import 'package:todoapp/auth_page.dart';
+import 'package:todoapp/screens/home_page.dart';
 import 'firebase_options.dart';
+import 'screens/login.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,9 +17,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: HomePage(),
-      debugShowCheckedModeBanner: false, //Removing Debug Banner
+    return MaterialApp(
+      home: AuthPage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
